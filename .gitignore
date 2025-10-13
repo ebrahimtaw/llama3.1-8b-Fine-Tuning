@@ -1,0 +1,24 @@
+# Environment
+.env
+__pycache__/
+*.pyc
+*.pyo
+
+# Checkpoints & logs
+checkpoints/
+artifacts/
+*.pt
+*.bin
+*.safetensors
+*.ckpt
+*.log
+*.json
+
+# Notebooks & cache
+.ipynb_checkpoints/
+*.ipynb_checkpoints/
+
+# Colab / VSCode metadata
+*.colab
+*.vscode/
+.DS_Store
