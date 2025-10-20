@@ -210,7 +210,7 @@ user_prompt = tok.apply_chat_template(
 user_plus_assistant_header = tok.apply_chat_template(
     msgs_user + [{"role": "assistant", "content": ""}],
     tokenize=False,
-    add_generation_prompt=False,  # <- include assistant header but no generation marker
+    add_generation_prompt=False,
 )
 
 # 3) The assistant header we need is the difference between the two renders
@@ -218,7 +218,7 @@ response_template = user_plus_assistant_header[len(user_prompt):]
 
 print("Response template (escaped preview):", response_template.replace("\n","\\n")[:160], "...")
 
-# --- Verify it exists in your real rendered training text ---
+# Verify it exists in your real rendered training text
 sample_txt = small_text["train"][0]["text"]
 print("Does response_template occur in sample string? ->", response_template in sample_txt)
 
