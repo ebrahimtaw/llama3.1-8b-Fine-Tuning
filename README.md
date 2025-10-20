@@ -1,6 +1,6 @@
 # Llama 3.1 8B QLoRA Fine-Tuning — Amazon Polarity Dataset
 
-This project fine-tunes the **Meta-Llama-3.1-8B-Instruct (4-bit)** using **Unsloth** and **QLoRA** for sentiment classification on the **Amazon Polarity** dataset.
+This project fine-tunes **Meta-Llama-3.1-8B-Instruct (4-bit)** using **Unsloth** and **QLoRA** for sentiment classification on the **Amazon Polarity** dataset.
 
 ## Structure
 - `src/` — contains modular training, evaluation, and inference scripts
