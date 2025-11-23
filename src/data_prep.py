@@ -38,7 +38,7 @@ random.seed(SEED); np.random.seed(SEED)
 @dataclass
 class CFG:
     dataset_id: str = "amazon_polarity"
-    base_model: str = "meta-llama/Meta-Llama-3.1-8B-Instruct"  # swap to Mistral/Qwen if you lack access
+    base_model: str = "meta-llama/Meta-Llama-3.1-8B-Instruct"  # swap to Mistral/Qwen if lacking access
     out_dir: str   = "checkpoints/qlora-llama8b-amazonpol"
     max_len: int   = 300   # reviews: 300 is enough to fit 8GB
     pad_mult: int  = 8
@@ -218,7 +218,7 @@ response_template = user_plus_assistant_header[len(user_prompt):]
 
 print("Response template (escaped preview):", response_template.replace("\n","\\n")[:160], "...")
 
-# Verify it exists in your real rendered training text
+# Verifying it exists in the real rendered training text
 sample_txt = small_text["train"][0]["text"]
 print("Does response_template occur in sample string? ->", response_template in sample_txt)
 
