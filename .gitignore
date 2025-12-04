@@ -1,10 +1,10 @@
-# Environment
+# environment
 .env
 __pycache__/
 *.pyc
 *.pyo
 
-# Checkpoints & logs
+# checkpoints & logs
 checkpoints/
 artifacts/
 *.pt
