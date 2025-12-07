@@ -40,7 +40,7 @@ class CFG:
     dataset_id: str = "amazon_polarity"
     base_model: str = "meta-llama/Meta-Llama-3.1-8B-Instruct"  # swap to Mistral/Qwen if lacking access
     out_dir: str   = "checkpoints/qlora-llama8b-amazonpol"
-    max_len: int   = 300   # reviews: 300 is enough to fit 8GB
+    max_len: int   = 300   # reviews: 300 is enough to fit the 8GB gpu
     pad_mult: int  = 8
     batch_size: int = 1
     grad_accum: int = 16   # effective batch ~= 16
