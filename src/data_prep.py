@@ -189,7 +189,7 @@ print(small_text)
 print("Sizes → train/val/test(dev):", len(train_text), len(val_text), len(test_text))
 print("Full test kept for final report:", len(ds["test"]))\
 
-# Building a canonical dummy example using the real system message,
+# this is for building a canonical dummy example using the real system message,
 # and a dummy user text (the exact user content doesn’t matter here).
 SYSTEM_MSG = "You are a helpful sentiment assistant. Reply with exactly one word: Positive or Negative."
 dummy_user = "Review:\nThis is a dummy review used to extract the assistant header.\n\nLabel (Positive or Negative):"
@@ -218,7 +218,7 @@ response_template = user_plus_assistant_header[len(user_prompt):]
 
 print("Response template (escaped preview):", response_template.replace("\n","\\n")[:160], "...")
 
-# Verifying it exists in the real rendered training text
+# this is for verifying it exists in the real rendered training text
 sample_txt = small_text["train"][0]["text"]
 print("Does response_template occur in sample string? ->", response_template in sample_txt)
 
