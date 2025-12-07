@@ -4,7 +4,7 @@ model_name = "unsloth/Meta-Llama-3.1-8B-Instruct-bnb-4bit"
 
 model, tokenizer = FastLanguageModel.from_pretrained(
     model_name = model_name,
-    max_seq_length = 256,
+    max_seq_length = 300, # i changed it from 256 to 300
     dtype = None,             # auto-detect (uses bfloat16 if available)
     load_in_4bit = True,      # 4-bit quantization
 )
