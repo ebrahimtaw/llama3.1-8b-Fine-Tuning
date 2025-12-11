@@ -213,7 +213,7 @@ user_plus_assistant_header = tok.apply_chat_template(
     add_generation_prompt=False,
 )
 
-# 3) The assistant header we need is the difference between the two renders
+# 3) the assistant header we need is the difference between the two renders
 response_template = user_plus_assistant_header[len(user_prompt):]
 
 print("Response template (escaped preview):", response_template.replace("\n","\\n")[:160], "...")
