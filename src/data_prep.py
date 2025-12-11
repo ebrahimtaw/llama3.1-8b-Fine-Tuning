@@ -206,7 +206,7 @@ user_prompt = tok.apply_chat_template(
     add_generation_prompt=True,   # <- append the assistant header, ready to generate
 )
 
-# 2) Render with an *empty* assistant message (same situation as training strings before the label)
+# 2) render with an *empty* assistant message (same situation as training strings before the label)
 user_plus_assistant_header = tok.apply_chat_template(
     msgs_user + [{"role": "assistant", "content": ""}],
     tokenize=False,
