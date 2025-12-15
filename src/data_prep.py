@@ -19,15 +19,6 @@
   "huggingface_hub[hf_xet]" \
   --extra-index-url https://jllllll.github.io/bitsandbytes-wheels/cu121
 
-# ---- optional: bitsandbytes (quantized 4/8-bit). Only install when supported.
-import sys, platform
-py_ok = (sys.version_info.major, sys.version_info.minor) in {(3,9),(3,10),(3,11)}
-os_ok = platform.system() == "Linux"         # prebuilt wheels are Linux-only
-if py_ok and os_ok:
-    %pip install "bitsandbytes==0.42.0"
-else:
-    print("Skipping bitsandbytes: not available for this Python/OS. "
-          "Use FP16/BF16 or a GPTQ/AWQ model instead.")
 
 import os
 import random
