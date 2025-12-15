@@ -1,79 +1,146 @@
+# fine-tuning the Llama-3.1-8B-Instruct on amazon_polarity
+# using Unsloth + QLoRA + TRL SFTTrainer
+
+import os
+import torch
+from dataclasses import dataclass
+from dotenv import load_dotenv
+
+from datasets import load_from_disk
+from transformers import TrainingArguments
+from trl import SFTTrainer
+
 from unsloth import FastLanguageModel
 
-model_name = "unsloth/Meta-Llama-3.1-8B-Instruct-bnb-4bit"
+# =========================================================
+# Loading the environment variables
+# =========================================================
+load_dotenv("private.env")
+HF_TOKEN = os.getenv("HF_TOKEN")
+assert HF_TOKEN is not None, "HF_TOKEN not found in private.env"
+
+# =========================================================
+# config
+# =========================================================
+@dataclass
+class CFG:
+    base_model: str = "meta-llama/Llama-3.1-8B-Instruct"
+    dataset_path: str = "data/amazon_polarity_sft"
+    output_dir: str = "outputs/llama31-amazonpol-qlora"
+
+    max_seq_length: int = 304
+    per_device_train_batch_size: int = 2
+    gradient_accumulation_steps: int = 8
+    num_train_epochs: float = 1.0
+
+    learning_rate: float = 2e-4
+    warmup_ratio: float = 0.03
+    weight_decay: float = 0.0
+
+    logging_steps: int = 25
+    eval_steps: int = 500
+    save_steps: int = 500
+    save_total_limit: int = 2
+
+    bf16: bool = True
+    seed: int = 42
+
+CFG = CFG()
+
+# =========================================================
+# loading the dataset (prepared earlier)
+# =========================================================
+print("Loading dataset from disk...")
+dataset = load_from_disk(CFG.dataset_path)
+print(dataset)
+
+# Must contain "text" column
+assert "text" in dataset["train"].column_names
+
+# =========================================================
+# loading the model with Unsloth (QLoRA)
+# =========================================================
+print("Loading model with Unsloth...")
 
 model, tokenizer = FastLanguageModel.from_pretrained(
-    model_name = model_name,
-    max_seq_length = 300, # i changed it from 256 to 300
-    dtype = None,             # auto-detect (uses bfloat16 if available)
-    load_in_4bit = True,      # 4-bit quantization
+    model_name = CFG.base_model,
+    max_seq_length = CFG.max_seq_length,
+    dtype = torch.bfloat16,
+    load_in_4bit = True,
+    token = HF_TOKEN,
 )
 
-# quick check
-print("Model loaded:", model_name)
-print("Pad token:", tokenizer.pad_token)
-print("Device:", model.device)
+tokenizer.pad_token = tokenizer.eos_token
 
-from unsloth import FastLanguageModel
-
+# =========================================================
+# applying QLoRA
+# =========================================================
 model = FastLanguageModel.get_peft_model(
     model,
-    r = 32,                  # rank
-    lora_alpha = 64,         # scaling
-    lora_dropout = 0.05,     # dropout
-    target_modules = ["q_proj", "k_proj", "v_proj", "o_proj", "gate_proj", "up_proj", "down_proj"],
+    r = 16,
+    lora_alpha = 32,
+    lora_dropout = 0.05,
+    target_modules = [
+        "q_proj", "k_proj", "v_proj", "o_proj",
+        "gate_proj", "up_proj", "down_proj"
+    ],
     bias = "none",
-    use_gradient_checkpointing = "unsloth",  # saves VRAM
-    random_state = 42,
-    use_rslora = False,
-    loftq_config = None,
+    use_gradient_checkpointing = "unsloth",
+    random_state = CFG.seed,
 )
 
-model.print_trainable_parameters()
+# =========================================================
+# training arguments
+# =========================================================
+training_args = TrainingArguments(
+    output_dir = CFG.output_dir,
+    per_device_train_batch_size = CFG.per_device_train_batch_size,
+    gradient_accumulation_steps = CFG.gradient_accumulation_steps,
+    num_train_epochs = CFG.num_train_epochs,
 
-# small_text should already be my DatasetDict with 'text' column: train/validation/test
-print(small_text)
+    learning_rate = CFG.learning_rate,
+    warmup_ratio = CFG.warmup_ratio,
+    weight_decay = CFG.weight_decay,
 
-# peek a couple of rendered rows (already chat-templated strings)
-for i in range(2):
-    print("--- sample", i, "---")
-    print(small_text["train"][i]["text"][:400], "...\n")
+    logging_steps = CFG.logging_steps,
+    evaluation_strategy = "steps",
+    eval_steps = CFG.eval_steps,
+    save_steps = CFG.save_steps,
+    save_total_limit = CFG.save_total_limit,
 
-import torch
-from trl import SFTTrainer, SFTConfig
+    bf16 = CFG.bf16,
+    optim = "adamw_8bit",
+    lr_scheduler_type = "cosine",
 
-# T4 prefers fp16; bf16 usually not available
-bf16_ok = torch.cuda.is_available() and torch.cuda.is_bf16_supported()
-
-train_args = SFTConfig(
-    output_dir                    = "/content/qlora-llama31-8b-unsloth-amazonpol",
-    num_train_epochs              = 1,          # starting with 1 epoch; I can do 2 later
-    per_device_train_batch_size   = 1,
-    per_device_eval_batch_size    = 1,
-    gradient_accumulation_steps   = 32,         # I chose this which simulates an effective batch of 32
-    learning_rate                 = 2e-4,
-    lr_scheduler_type             = "cosine",
-    warmup_ratio                  = 0.03,
-    logging_steps                 = 50,
-    save_steps                    = 1000,       # frequent checkpoints
-    eval_strategy                 = "steps",
-    eval_steps                    = 1000,
-    max_seq_length                = 256,        # this keeps VRAM low
-    packing                       = False,      # this one MUST be False for completion-only loss
-    fp16                          = True,
-    bf16                          = False,
+    report_to = "none",
+    seed = CFG.seed,
 )
 
+# =========================================================
+# trainer (assistant-only loss)
+# =========================================================
 trainer = SFTTrainer(
-    model              = model,
-    tokenizer          = tokenizer,
-    train_dataset      = small_text["train"],
-    eval_dataset       = small_text["validation"],
+    model = model,
+    tokenizer = tokenizer,
+    train_dataset = dataset["train"],
+    eval_dataset = dataset["validation"],
     dataset_text_field = "text",
-    response_template  = response_template,   # this is the verified assistant header snippet
-    args               = train_args,
+    max_seq_length = CFG.max_seq_length,
+    packing = True,  # packs multiple samples → faster on A100
+    args = training_args,
 )
 
-print("Trainer ready. Starting training…")
-train_output = trainer.train()
-train_output
+# =========================================================
+# train
+# =========================================================
+print("Starting training...")
+trainer.train()
+
+# =========================================================
+# saving the final adapter
+# =========================================================
+print("Saving model...")
+trainer.save_model(CFG.output_dir)
+tokenizer.save_pretrained(CFG.output_dir)
+
+print("Training complete.")
