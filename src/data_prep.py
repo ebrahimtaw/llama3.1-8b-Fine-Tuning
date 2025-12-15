@@ -1,25 +1,3 @@
-!pip3 install -q -U \
-  "unsloth>=2025.10.1" \
-  "transformers>=4.56.0,<=4.56.2" \
-  "datasets>=3.4.0,<3.5.0" \
-  "accelerate>=0.34.1" \
-  "peft>=0.13.0" \
-  "bitsandbytes>=0.45.0" \
-  "trl>=0.12.0" \
-  "sentencepiece>=0.2.0" \
-  "evaluate>=0.4.2" \
-  "numpy>=1.26.4,<2.0.0" \
-  "pandas==2.2.2" \
-  "scikit-learn>=1.5.0,<1.7.0" \
-  "matplotlib>=3.9.0,<3.10.0" \
-  "pyarrow>=16.1.0,<20.0.0" \
-  "protobuf>=5.29.1,<6.0.0" \
-  "fsspec>=2024.3.0,<2024.12.0" \
-  "python-dotenv" \
-  "huggingface_hub[hf_xet]" \
-  --extra-index-url https://jllllll.github.io/bitsandbytes-wheels/cu121
-
-
 import os
 import random
 import numpy as np
