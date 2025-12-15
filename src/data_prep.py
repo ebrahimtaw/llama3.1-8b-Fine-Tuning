@@ -252,3 +252,13 @@ enc_resp = tok(response_template, add_special_tokens=False)
 
 pos = find_sublist(enc_full["input_ids"], enc_resp["input_ids"])
 print("Assistant header token index:", pos, "(>=0 is correct)")
+
+# =========================================================
+# this is for saving the dataset to disk for training (RunPod-compatible)
+# =========================================================
+SAVE_PATH = "data/amazon_polarity_sft"
+
+os.makedirs(SAVE_PATH, exist_ok=True)
+small_text.save_to_disk(SAVE_PATH)
+
+print(f"Dataset saved to: {SAVE_PATH}")
